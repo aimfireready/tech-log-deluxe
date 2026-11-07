@@ -30,11 +30,11 @@ Nice to have:
 ## Stack
 
 - Single Laravel app at the repo root (no `/frontend` + `/backend` split)
-- Laravel 13 with Inertia.js and Vue 3: controllers return `Inertia::render()` pages with props, pages live in `resources/js/Pages`, built by Laravel's Vite plugin. No client-side router and no Pinia unless genuinely shared client state appears
+- Laravel 13 with Inertia.js and Vue 3: controllers return `Inertia::render()` pages with props, pages live in `resources/js/pages` (lowercase, kebab-case names such as `auth/login`), built by Laravel's Vite plugin. No client-side router and no Pinia unless genuinely shared client state appears
 - Bootstrap 5 for styling, dark theme
 - SQLite with FTS5 virtual table for search
 - TipTap for the WYSIWYG editor
-- Session auth on the `web` guard, with Laravel Fortify providing the login, logout, and password-reset backend; the screens are our own Inertia pages in Bootstrap. The Laravel Vue starter kit is not used because it ships Tailwind, shadcn-vue, and TypeScript
+- Session auth on the `web` guard, with Laravel Fortify providing the login, logout, and password-reset backend; the screens are our own Inertia pages in Bootstrap. The Laravel Vue starter kit is not used because it ships Tailwind, shadcn-vue, and TypeScript. `FortifyServiceProvider` maps each Fortify screen to its Inertia page. Public registration and passkeys are switched off in `config/fortify.php`; users are created by seeder or tinker. Two-factor auth is on
 - Sanctum token auth for the REST API (`php artisan install:api`); the app's own pages don't use it
 - Local disk image storage, S3-compatible driver optional later
 - Pest for tests
