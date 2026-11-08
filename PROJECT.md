@@ -30,14 +30,16 @@ No tracker or PRD yet; the requirements and the "First Tasks" list in CLAUDE.md 
 
 ## Recent focus
 
-Backend scaffold (branch `feature/scaffold-backend`): Laravel 13, Pest, Fortify (web auth, registration and passkeys off, 2FA on), Inertia server side, Sanctum with `/api/v1` token issue, revoke and current-user endpoints.
+- Backend scaffold (branch `feature/scaffold-backend`): Laravel 13, Pest, Fortify (web auth, registration and passkeys off, 2FA on), Inertia server side, Sanctum with `/api/v1` token issue, revoke and current-user endpoints.
+- Frontend scaffold (branch `feature/frontend-scaffold`, stacked on the backend branch): Vue 3 + Inertia client, Bootstrap dark theme, ESLint, Vitest, app shell with search box and user menu, `/` and `?` shortcuts, and all Fortify auth pages.
 
 ## Known gaps
 
 No task ids exist yet; these map to the "First Tasks" list in CLAUDE.md.
 
-- No Vue frontend: Vue, Bootstrap, TipTap and ESLint are not installed, and every page render fails until the frontend is built.
-- No auth pages (login, forgot/reset password, two-factor challenge, confirm password) even though the routes exist.
+- No screen for turning on two-factor auth or managing the profile; the challenge page exists but nobody can enrol yet.
+- Timeline is an empty-state placeholder; the search box submits `?q=` but nothing reads it yet.
+- No quick-add panel, `n` or `j`/`k` shortcuts, tag or date filters.
 - No data model: entries, tags, attachments and the users `role` column are not migrated.
 - No entries CRUD, FTS5 search, timeline, or image upload.
 - No production environment chosen.

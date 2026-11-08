@@ -1,9 +1,88 @@
-@import 'tailwindcss';
+/* Bootstrap's dark mode does the heavy lifting; these tokens only add the accent and log-specific surfaces. */
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+:root,
+[data-bs-theme='dark'] {
+    --bs-body-bg: #12151a;
+    --bs-body-color: #d5d9e0;
+    --bs-secondary-bg: #1a1e25;
+    --bs-tertiary-bg: #20252d;
+    --bs-border-color: #2c323c;
+    --bs-primary: #4fa3ff;
+    --bs-primary-rgb: 79, 163, 255;
+    --bs-link-color: #6db3ff;
+    --bs-link-color-rgb: 109, 179, 255;
+    --bs-link-hover-color: #9ccbff;
+    --bs-font-monospace: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
+    --tl-code-bg: #0b0d11;
+    --tl-content-width: 960px;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+.btn-primary {
+    --bs-btn-color: #0b1220;
+    --bs-btn-bg: #4fa3ff;
+    --bs-btn-border-color: #4fa3ff;
+    --bs-btn-hover-color: #0b1220;
+    --bs-btn-hover-bg: #79b9ff;
+    --bs-btn-hover-border-color: #79b9ff;
+    --bs-btn-active-color: #0b1220;
+    --bs-btn-active-bg: #8cc3ff;
+    --bs-btn-active-border-color: #8cc3ff;
+    --bs-btn-disabled-color: #0b1220;
+    --bs-btn-disabled-bg: #4fa3ff;
+    --bs-btn-disabled-border-color: #4fa3ff;
+}
+
+.tl-container {
+    max-width: var(--tl-content-width);
+}
+
+.tl-topbar {
+    backdrop-filter: blur(8px);
+    background-color: rgba(18, 21, 26, 0.92);
+}
+
+.tl-search {
+    max-width: 420px;
+}
+
+kbd {
+    background-color: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    font-size: 0.75em;
+}
+
+code,
+pre {
+    background-color: var(--tl-code-bg);
+}
+
+pre {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 0.75rem 1rem;
+}
+
+.tl-skeleton {
+    animation: tl-pulse 1.4s ease-in-out infinite;
+    background-color: var(--bs-tertiary-bg);
+    border-radius: var(--bs-border-radius-sm);
+    min-height: 0.9rem;
+}
+
+@keyframes tl-pulse {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tl-skeleton {
+        animation: none;
+    }
+}
+
+.tl-auth-card {
+    max-width: 400px;
 }

@@ -84,6 +84,7 @@ Nice to have:
 - `php artisan test tests/Feature/EntryTest.php` for one file; `php artisan test --filter="creates an entry"` for one test
 - `vendor/bin/pint` to lint and format PHP (`vendor/bin/pint --test` checks without writing)
 - `npm run lint` to lint JS and Vue with ESLint (`npm run lint -- --fix` to apply fixes)
+- `npm test` for the Vitest suite; `npx vitest run <file>` or `npx vitest run -t "<name>"` for one file or test
 - `npm run build`
 
 ## First Tasks

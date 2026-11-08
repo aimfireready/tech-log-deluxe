@@ -16,8 +16,13 @@ How to work on this codebase. For what the product is and where it stands, see [
 | Database | SQLite (with FTS5) | 3.54 |
 | Build | Vite / laravel-vite-plugin | 8 / 3.1 |
 | Node | Node.js | 26 |
+| UI framework | vue | 3.5 |
+| Page client | @inertiajs/vue3 | 3.11 |
+| Styling | bootstrap (CSS only, dark mode) | 5.3 |
+| JS lint | eslint / eslint-plugin-vue | 10.14 / 10.12 |
+| JS tests | vitest / @vue/test-utils / jsdom | 5.1 / 2.5 / 31 |
 
-The Vue 3, Bootstrap 5, TipTap and ESLint layer is not installed yet; `package.json` still carries the Laravel skeleton's Tailwind defaults until the frontend scaffold replaces them.
+TipTap arrives with the entries work.
 
 ## Repo layout
 
@@ -33,7 +38,12 @@ app/
 config/fortify.php          Which auth features are on
 database/                   Migrations, factories, seeders, local database.sqlite
 resources/views/app.blade.php  Inertia root template (the only Blade view)
-resources/js/               Vue app; pages go in resources/js/pages
+resources/css/app.css       Bootstrap import plus the app's colour tokens
+resources/js/app.js         Inertia bootstrap; gives every page AppLayout unless it opts out
+resources/js/pages/         One Vue file per Inertia page, named by route (auth/login, timeline/index)
+resources/js/layouts/       AppLayout (top bar, search, shortcuts) and AuthLayout (centred card)
+resources/js/components/    Shared Vue components
+resources/js/composables/   Shared logic such as useShortcuts; *.test.js files sit beside the code
 routes/web.php              Inertia page routes (session auth)
 routes/api.php              /api/v1 routes (Sanctum tokens)
 tests/Feature/              Pest feature tests, one folder per surface
@@ -61,6 +71,10 @@ php artisan test tests/Feature/Api/V1/TokenTest.php # one file
 php artisan test --filter="revokes the current token" # one test
 vendor/bin/pint            # format PHP
 vendor/bin/pint --test     # check only
+npm test                   # all Vitest tests
+npx vitest run resources/js/composables/useShortcuts.test.js  # one file
+npx vitest run -t "closes on Esc"                             # one test
+npm run lint               # ESLint (add -- --fix to apply fixes)
 ```
 
 Feature tests use an in-memory SQLite database with `RefreshDatabase`, and call `withoutVite()` where they render pages, so they run without a frontend build.
@@ -70,6 +84,10 @@ Feature tests use an in-memory SQLite database with `RefreshDatabase`, and call 
 - **Two surfaces, one app.** The browser gets Inertia pages from `routes/web.php` with session auth. External clients use `/api/v1` with Sanctum bearer tokens issued by `POST /api/v1/tokens`. Business logic belongs in `app/Actions` so both controller sets call the same code.
 - **Fortify owns the auth routes** (`/login`, `/logout`, `/forgot-password`, `/reset-password/{token}`, `/two-factor-challenge`, `/user/confirm-password`). They don't appear in `routes/web.php`; run `php artisan route:list` to see them. Their GET screens are wired to Inertia pages in `FortifyServiceProvider`.
 - **Token requests share the `login` rate limiter** (5 per minute per email and IP) defined in `FortifyServiceProvider`.
+- **Layouts are applied in `app.js`.** A page gets `AppLayout` by default; auth pages declare `defineOptions({ layout: false })` and wrap themselves in `AuthLayout`. Inertia keeps a persistent layout mounted across visits, so the search box and shortcuts survive navigation.
+- **Shared props** (`auth.user`, `flash.status`) come from `HandleInertiaRequests::share()`. Only `id`, `name` and `email` of the user are exposed.
+- **Single-key shortcuts** go through `useShortcuts`, which ignores keys typed into inputs or the editor and any key held with Ctrl, Cmd or Alt.
+- **Bootstrap JavaScript is not loaded.** Menus and dialogs are Vue state toggling Bootstrap's classes, so there's one source of truth for what's open.
 - **Any page render needs a Vite build** (`npm run build`) or a running `npm run dev`; without one the root view throws "Vite manifest not found".
 
 ## Conventions

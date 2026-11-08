@@ -9,8 +9,6 @@ beforeEach(function () {
     $this->withoutVite();
 });
 
-// Vue pages arrive with the frontend scaffold, so components are asserted without checking the files exist.
-
 it('redirects guests from the timeline to the login page', function () {
     $this->get('/')->assertRedirect('/login');
 });
@@ -18,14 +16,35 @@ it('redirects guests from the timeline to the login page', function () {
 it('renders the login page through Inertia', function () {
     $this->get('/login')
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('auth/login', false));
+        ->assertInertia(fn (Assert $page) => $page->component('auth/login'));
 });
 
 it('renders the timeline for a signed-in user', function () {
     $this->actingAs(User::factory()->create())
         ->get('/')
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('timeline/index', false));
+        ->assertInertia(fn (Assert $page) => $page->component('timeline/index'));
+});
+
+it('shares only safe user fields with every page', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('auth.user', ['id' => $user->id, 'name' => $user->name, 'email' => $user->email])
+            ->where('flash.status', null));
+});
+
+it('shows the reset-link status on the forgot password page', function () {
+    $user = User::factory()->create();
+
+    $this->post('/forgot-password', ['email' => $user->email]);
+
+    $this->get('/forgot-password')
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('auth/forgot-password')
+            ->where('flash.status', __('passwords.sent')));
 });
 
 it('logs in with valid credentials and lands on the timeline', function () {
@@ -71,7 +90,7 @@ it('passes the reset token and email to the reset password page', function () {
     $this->get('/reset-password/abc123?email=ops@example.com')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('auth/reset-password', false)
+            ->component('auth/reset-password')
             ->where('token', 'abc123')
             ->where('email', 'ops@example.com'));
 });
