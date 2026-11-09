@@ -22,7 +22,7 @@ Internal tool; no commercial model.
 | Environment | Where | Notes |
 | --- | --- | --- |
 | Local | `composer dev` or `php artisan serve` on port 8000 | SQLite file at `database/database.sqlite`; mail goes to the log |
-| Production | Not chosen yet | Self-hosted. Needs `npm run build` on deploy, a writable `storage/` and SQLite file, and a real mailer for password resets |
+| Production | A self-managed host pulling from the public GitHub repo `aimfireready/tech-log-deluxe` (`master`) | Steps in README "Deploying to a host". Never run `db:seed` there expecting a login; create one with `user:create`. Needs `npm run build` on every deploy, writable `storage/` and `database/`, `APP_DEBUG=false`, and a real mailer for password resets |
 
 ## Task tracking
 

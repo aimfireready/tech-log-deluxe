@@ -59,9 +59,36 @@ php artisan migrate --seed
 composer dev            # Laravel server, queue, logs and Vite together
 ```
 
-The seeder creates `test@example.com` / `password`. There is no public sign-up; add users with a seeder or `php artisan tinker`.
+Locally the seeder creates `test@example.com` / `password`; outside `local` and `testing` it creates nothing. There is no public sign-up; add users with `php artisan user:create`.
 
 No env vars beyond the `.env.example` defaults are required for local work. Password-reset emails go to the `log` mailer by default (`storage/logs/laravel.log`).
+
+## Deploying to a host
+
+Needs PHP 8.5 with the `pdo_sqlite` extension (SQLite built with FTS5), Composer, and Node 26 to build assets. Point the web server's document root at `public/`.
+
+```sh
+git clone <repo-url> tech-log && cd tech-log
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --force
+php artisan user:create          # first login; do not run db:seed here
+php artisan optimize
+```
+
+Set these in `.env` before going live:
+
+| Variable | Value |
+| --- | --- |
+| `APP_ENV` | `production` |
+| `APP_DEBUG` | `false` (true leaks config and stack traces) |
+| `APP_URL` | the public URL; password-reset links are built from it |
+| `MAIL_MAILER` and `MAIL_*` | a real mailer, or reset emails only reach the log |
+| `SESSION_SECURE_COOKIE` | `true` when served over HTTPS |
+
+The web server user must be able to write `storage/`, `bootstrap/cache/`, and both `database/database.sqlite` and the `database/` directory (SQLite writes a journal file beside the database). To update: `git pull`, then rerun the `composer install`, `npm ci && npm run build`, `migrate --force` and `optimize` steps.
 
 ## Tests and linting
 

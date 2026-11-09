@@ -34,7 +34,7 @@ Nice to have:
 - Bootstrap 5 for styling, dark theme
 - SQLite with FTS5 virtual table for search
 - TipTap for the WYSIWYG editor
-- Session auth on the `web` guard, with Laravel Fortify providing the login, logout, and password-reset backend; the screens are our own Inertia pages in Bootstrap. The Laravel Vue starter kit is not used because it ships Tailwind, shadcn-vue, and TypeScript. `FortifyServiceProvider` maps each Fortify screen to its Inertia page. Public registration and passkeys are switched off in `config/fortify.php`; users are created by seeder or tinker. Two-factor auth is on
+- Session auth on the `web` guard, with Laravel Fortify providing the login, logout, and password-reset backend; the screens are our own Inertia pages in Bootstrap. The Laravel Vue starter kit is not used because it ships Tailwind, shadcn-vue, and TypeScript. `FortifyServiceProvider` maps each Fortify screen to its Inertia page. Public registration and passkeys are switched off in `config/fortify.php`; users are created with `php artisan user:create` (the seeder's test user exists only in local and testing). Two-factor auth is on
 - Sanctum token auth for the REST API (`php artisan install:api`); the app's own pages don't use it
 - Local disk image storage, S3-compatible driver optional later
 - Pest for tests

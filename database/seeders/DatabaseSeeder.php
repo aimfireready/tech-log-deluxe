@@ -15,7 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // The test login has a well-known password; never create it on a real host.
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->warn('Skipping the test user outside local and testing. Use `php artisan user:create`.');
+
+            return;
+        }
 
         User::factory()->create([
             'name' => 'Test User',
