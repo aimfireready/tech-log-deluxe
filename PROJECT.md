@@ -1,6 +1,6 @@
 # Tech Log: project status
 
-How to work on the code is in [README.md](README.md); agent instructions are in [CLAUDE.md](CLAUDE.md); incident history is in [MISTAKES.md](MISTAKES.md) once it exists.
+How to work on the code is in [README.md](README.md); agent instructions are in [CLAUDE.md](CLAUDE.md); incident history is kept locally in a git-ignored `MISTAKES.md`.
 
 ## Product
 

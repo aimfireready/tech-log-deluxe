@@ -1,6 +1,6 @@
 # Tech Log
 
-How to work on this codebase. For what the product is and where it stands, see [PROJECT.md](PROJECT.md). Agent instructions live in [CLAUDE.md](CLAUDE.md); incident history lives in [MISTAKES.md](MISTAKES.md) once it exists.
+How to work on this codebase. For what the product is and where it stands, see [PROJECT.md](PROJECT.md). Agent instructions live in [CLAUDE.md](CLAUDE.md); incident history is kept locally in a git-ignored `MISTAKES.md`.
 
 ## Stack
 

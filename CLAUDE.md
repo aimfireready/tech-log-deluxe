@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Tech Log
 
-Past mistakes and how to prevent them are logged in [MISTAKES.md](MISTAKES.md). Read it before starting work and append to it when something breaks or gets corrected.
+Past mistakes and how to prevent them are logged in `MISTAKES.md`, a local-only file that is git-ignored and not on GitHub. If it exists, read it before starting work and append to it when something breaks or gets corrected.
 
 Self-hosted IT change journal: a chronological log of config changes, installs, policy changes, and staff changes. Built to be maintained by a successor, so prefer standard, well-documented choices over clever ones.
 
