@@ -6,7 +6,7 @@ How to work on this codebase. For what the product is and where it stands, see [
 
 | Layer | Package | Version |
 | --- | --- | --- |
-| Language | PHP | 8.5 |
+| Language | PHP | 8.4 or newer (tested on 8.4 and 8.5) |
 | Framework | laravel/framework | 13.40 |
 | Page delivery | inertiajs/inertia-laravel | 3.7 |
 | Web auth backend | laravel/fortify | 1.41 |
@@ -68,13 +68,13 @@ composer dev            # Laravel server, queue, logs and Vite together
 
 Locally the seeder creates `test@example.com` / `password` and 15 sample entries; outside `local` and `testing` it creates nothing. There is no public sign-up; add users with `php artisan user:create`.
 
-With Laravel Herd the site is served at `http://tech-log-deluxe.test`. Pin it to a PHP version with `herd isolate 8.5` (8.4 also works): an unpinned site uses Herd's default PHP, and if no default is set (seen after a reboot) Herd answers every request with a 502.
+With Laravel Herd the site is served at `http://tech-log-deluxe.test`. Pin it to a PHP version with `herd isolate 8.4`: an unpinned site uses Herd's default PHP, and if no default is set (seen after a reboot) Herd answers every request with a 502.
 
 No env vars beyond the `.env.example` defaults are required for local work. Password-reset emails go to the `log` mailer by default (`storage/logs/laravel.log`).
 
 ## Deploying to a host
 
-Needs PHP 8.5 with the `pdo_sqlite` extension (SQLite built with FTS5), Composer, and Node 26 to build assets. Point the web server's document root at `public/`.
+Needs PHP 8.4 or newer with the `pdo_sqlite` extension (SQLite built with FTS5), Composer, and Node 26 to build assets. Point the web server's document root at `public/`.
 
 ```sh
 git clone <repo-url> tech-log && cd tech-log
