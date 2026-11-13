@@ -21,14 +21,19 @@ How to work on this codebase. For what the product is and where it stands, see [
 | Styling | bootstrap (CSS only, dark mode) | 5.3 |
 | JS lint | eslint / eslint-plugin-vue | 10.14 / 10.12 |
 | JS tests | vitest / @vue/test-utils / jsdom | 5.1 / 2.5 / 31 |
-
-TipTap arrives with the entries work.
+| HTML sanitizing | symfony/html-sanitizer | 8.1 |
+| Editor | @tiptap/vue-3, starter-kit, extension-image | 3.33 |
 
 ## Repo layout
 
 ```
 app/
+  Actions/Entries/          SaveEntry (create/update) and TimelineQuery (listing, search, filters)
+  Actions/Attachments/      StoreAttachment (editor image uploads)
   Actions/Fortify/          Fortify's user actions (password reset, profile, password update)
+  Support/                  EntryHtml (sanitize, html->text) and SearchQuery (safe FTS5 MATCH)
+  Rules/                    Custom validation rules
+  Console/Commands/         user:create
   Http/Controllers/         Inertia page controllers
   Http/Controllers/Api/V1/  REST API controllers (/api/v1)
   Http/Requests/            Form Requests, shared by both surfaces where possible
@@ -43,7 +48,8 @@ resources/js/app.js         Inertia bootstrap; gives every page AppLayout unless
 resources/js/pages/         One Vue file per Inertia page, named by route (auth/login, timeline/index)
 resources/js/layouts/       AppLayout (top bar, search, shortcuts) and AuthLayout (centred card)
 resources/js/components/    Shared Vue components
-resources/js/composables/   Shared logic such as useShortcuts; *.test.js files sit beside the code
+resources/js/composables/   Shared state and logic (useShortcuts, useTimeline, useQuickAdd)
+resources/js/utils/         Plain functions: dates, tags, uploads; *.test.js files sit beside the code
 routes/web.php              Inertia page routes (session auth)
 routes/api.php              /api/v1 routes (Sanctum tokens)
 tests/Feature/              Pest feature tests, one folder per surface
@@ -56,10 +62,11 @@ composer install && npm install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate --seed
+php artisan storage:link   # serves uploaded images from /storage
 composer dev            # Laravel server, queue, logs and Vite together
 ```
 
-Locally the seeder creates `test@example.com` / `password`; outside `local` and `testing` it creates nothing. There is no public sign-up; add users with `php artisan user:create`.
+Locally the seeder creates `test@example.com` / `password` and 15 sample entries; outside `local` and `testing` it creates nothing. There is no public sign-up; add users with `php artisan user:create`.
 
 No env vars beyond the `.env.example` defaults are required for local work. Password-reset emails go to the `log` mailer by default (`storage/logs/laravel.log`).
 
@@ -74,6 +81,7 @@ npm ci && npm run build
 cp .env.example .env
 php artisan key:generate
 php artisan migrate --force
+php artisan storage:link         # once; uploaded images are served from /storage
 php artisan user:create          # first login; do not run db:seed here
 php artisan optimize
 ```
@@ -88,7 +96,7 @@ Set these in `.env` before going live:
 | `MAIL_MAILER` and `MAIL_*` | a real mailer, or reset emails only reach the log |
 | `SESSION_SECURE_COOKIE` | `true` when served over HTTPS |
 
-The web server user must be able to write `storage/`, `bootstrap/cache/`, and both `database/database.sqlite` and the `database/` directory (SQLite writes a journal file beside the database). To update: `git pull`, then rerun the `composer install`, `npm ci && npm run build`, `migrate --force` and `optimize` steps.
+Uploaded images live in `storage/app/public/attachments` and are not in git; back them up with the database. The web server user must be able to write `storage/`, `bootstrap/cache/`, and both `database/database.sqlite` and the `database/` directory (SQLite writes a journal file beside the database). To update: `git pull`, then rerun the `composer install`, `npm ci && npm run build`, `migrate --force` and `optimize` steps.
 
 ## Tests and linting
 
@@ -115,7 +123,40 @@ Feature tests use an in-memory SQLite database with `RefreshDatabase`, and call 
 - **Shared props** (`auth.user`, `flash.status`) come from `HandleInertiaRequests::share()`. Only `id`, `name` and `email` of the user are exposed.
 - **Single-key shortcuts** go through `useShortcuts`, which ignores keys typed into inputs or the editor and any key held with Ctrl, Cmd or Alt.
 - **Bootstrap JavaScript is not loaded.** Menus and dialogs are Vue state toggling Bootstrap's classes, so there's one source of truth for what's open.
+- **Entries are only written through `SaveEntry`.** It sanitizes `body` with `EntryHtml::sanitize()` (an allow-list matching what the TipTap toolbar can produce), derives `body_text`, syncs tags by slug, and links uploaded images the body references. `occurred_at` is set at creation and never changes; `UpdateEntryRequest` prohibits it. There are no per-entry permissions: any signed-in user can edit or delete any entry.
+- **Search is SQLite FTS5.** `entries_fts` is an external-content index over `title` and `body_text`, kept in sync by three triggers created in the `create_entries_fts_table` migration, so anything that writes `entries` (including raw SQL) stays searchable. Soft-deleted rows stay in the index and are filtered out by joining back to `entries`. User input never reaches `MATCH` directly: `SearchQuery::toMatch()` turns it into quoted prefix terms. Results stay in timeline order; matches are highlighted with `highlight()`/`snippet()` and sent as `{text, match}` segments, so no HTML from the index is rendered.
+- **Days are the viewer's days.** `occurred_at` is stored in UTC. The browser sends its IANA timezone in `X-Timezone` on every Inertia request (`app.js`), and `TimelineFilterRequest::timezone()` uses it for the from/to filter boundaries; API clients pass `tz=`. The timeline groups by local day in the browser.
+- **Infinite scroll** uses Inertia's `Inertia::scroll()` prop with a cursor paginator and the `<InfiniteScroll>` component. Don't pass `reset: [...]` on ordinary visits: in Inertia 3 it turns the visit into a partial reload of only that prop, so filters, flash messages and shared tags go stale.
+- **Single resources passed to pages are `->resolve()`d** so the page gets fields directly instead of under `data`. Nested collections inside a resource must be resolved too (see `EntryResource` tags), or they reach the page as objects.
+- **Images** are uploaded before the entry exists (`POST /attachments`, raster types only, 10 MB, content-sniffed), stored on the `public` disk under `attachments/Y/m/`, and returned as root-relative `/storage/...` URLs so they work on any host name. `entry_id` is filled when an entry body first references the file.
+- **The editor is loaded on demand.** `RichEditor` (TipTap) is imported with `defineAsyncComponent`, keeping it out of the main bundle.
+- **Deleting is a soft delete** with an 8-second Undo toast driven by the `flash.deleted_entry` shared prop; `POST /entries/{id}/restore` brings it back.
 - **Any page render needs a Vite build** (`npm run build`) or a running `npm run dev`; without one the root view throws "Vite manifest not found".
+
+## REST API
+
+All under `/api/v1`, JSON, authenticated with `Authorization: Bearer <token>` except `POST /tokens`.
+
+| Method and path | Purpose |
+| --- | --- |
+| `POST /tokens` | `email`, `password`, `device_name` → `{token}` (rate limited) |
+| `DELETE /tokens/current` | Revoke the token in use |
+| `GET /user` | The token's user |
+| `GET /entries` | Newest first, 20 per page, cursor in `links.next`; filters `q`, `tag` (slug), `from`, `to` (`YYYY-MM-DD`), `tz` |
+| `POST /entries` | `title`, `body` (HTML, sanitized), `tags` (names), `occurred_at` (optional, defaults to now) |
+| `GET /entries/{id}` | One entry |
+| `PUT /entries/{id}` | `title`, `body`, `tags`; `occurred_at` is rejected |
+| `DELETE /entries/{id}` | Soft delete |
+| `POST /entries/{id}/restore` | Undo a delete |
+| `GET /search?q=` | Same as `/entries` but `q` is required; results include `highlight` segments |
+| `GET /tags` | Tags in use, with live `entries_count` |
+| `POST /attachments` | Multipart `file` (PNG, JPEG, GIF, WebP, ≤10 MB) → `{id, url}`; put the `url` in an entry body's `<img src>` |
+
+```sh
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/tokens -H 'Accept: application/json' \
+  -d email=test@example.com -d password=password -d device_name=cli | jq -r .token)
+curl -s -H "Authorization: Bearer $TOKEN" 'http://localhost:8000/api/v1/entries?q=nginx' | jq '.data[].title'
+```
 
 ## Conventions
 

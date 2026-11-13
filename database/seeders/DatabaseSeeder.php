@@ -22,9 +22,13 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        User::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        if (app()->environment('local')) {
+            $this->call(SampleEntriesSeeder::class, parameters: ['author' => $user]);
+        }
     }
 }

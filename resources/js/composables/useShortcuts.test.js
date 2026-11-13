@@ -84,4 +84,20 @@ describe('useShortcuts', () => {
 
         wrapper.unmount();
     });
+
+    it('leaves the default alone when a handler declines the key', () => {
+        const wrapper = mount(defineComponent({
+            setup() {
+                useShortcuts({ Enter: () => false });
+
+                return () => h('div');
+            },
+        }));
+        const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+
+        window.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+
+        wrapper.unmount();
+    });
 });

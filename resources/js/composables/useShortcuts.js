@@ -35,16 +35,16 @@ export function matchShortcut(event, bindings) {
 
 /**
  * Register single-key shortcuts for the lifetime of the calling component.
+ * A handler can return false to decline the key and leave the browser's default in place.
  *
- * @param {Record<string, (event: KeyboardEvent) => void>} bindings keyed by KeyboardEvent.key
+ * @param {Record<string, (event: KeyboardEvent) => void | false>} bindings keyed by KeyboardEvent.key
  */
 export function useShortcuts(bindings) {
     const onKeydown = (event) => {
         const handler = matchShortcut(event, bindings);
 
-        if (handler) {
+        if (handler && handler(event) !== false) {
             event.preventDefault();
-            handler(event);
         }
     };
 

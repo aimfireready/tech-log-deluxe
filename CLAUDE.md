@@ -42,11 +42,12 @@ Nice to have:
 
 ## Data Model
 
-- `entries`: id, user_id, title, body (HTML), body_text (plain, for search), occurred_at, timestamps, soft deletes
-- `tags`: id, name, slug
+- `entries`: id, user_id, title, body (HTML), body_text (plain, for search), occurred_at, timestamps, soft deletes. `occurred_at` is fixed at creation and never edited
+- `tags`: id, name, slug (unique; tags are matched by slug)
 - `entry_tag`: pivot
-- `attachments`: id, entry_id, path, mime, size
-- `users`: standard Laravel, with a role column to support multiple authors later
+- `attachments`: id, entry_id (nullable until an entry body references the image), user_id (uploader), path, mime, size
+- `users`: standard Laravel, with a role column (default `author`) reserved for later; there are no per-entry permissions today, any signed-in user may edit or delete any entry
+- `entries_fts`: FTS5 external-content index over entries.title and body_text, synced by triggers
 
 ## UX Rules
 
@@ -89,9 +90,4 @@ Nice to have:
 
 ## First Tasks
 
-- Scaffold Laravel 13 with Inertia + Vue, Fortify, Bootstrap, Pest, ESLint, and the API layer (`install:api` for Sanctum and `routes/api.php`, with an authenticated `/api/v1` route group)
-- Build login, logout, and password reset Inertia pages in Bootstrap against Fortify, plus API token issuing
-- Create migrations, models, and factories for the data model above
-- Build entries CRUD as shared actions, exposed through Inertia controllers and `/api/v1` controllers, with tag syncing and FTS5 search
-- Build the timeline page and TipTap editor
-- Add image upload endpoint and editor integration, plus the attachments API resource
+The original first tasks (scaffold, auth pages, data model, entries CRUD and search, timeline and editor, image upload) are done. Current status and the known-gaps list live in PROJECT.md.

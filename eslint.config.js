@@ -21,7 +21,7 @@ export default [
             'vue/html-indent': ['error', 4],
             'vue/max-attributes-per-line': ['warn', { singleline: 4 }],
             // Page files are named after their route (auth/login), not as multi-word components.
-            'vue/multi-word-component-names': ['error', { ignores: ['index', 'login'] }],
+            'vue/multi-word-component-names': ['error', { ignores: ['index', 'login', 'show'] }],
         },
     },
     {

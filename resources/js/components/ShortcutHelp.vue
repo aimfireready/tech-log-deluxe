@@ -13,7 +13,12 @@ watch(open, async (isOpen) => {
 });
 
 const shortcuts = [
+    { keys: ['n'], action: 'New entry' },
     { keys: ['/'], action: 'Focus search' },
+    { keys: ['j', 'k'], action: 'Next / previous entry' },
+    { keys: ['Enter'], action: 'Expand or collapse the selected entry' },
+    { keys: ['o'], action: 'Open the selected entry' },
+    { keys: ['Ctrl/⌘', 'Enter'], action: 'Save the entry you are writing' },
     { keys: ['?'], action: 'Show this list' },
     { keys: ['Esc'], action: 'Close dialogs and panels' },
 ];

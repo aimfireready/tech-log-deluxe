@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,7 +44,12 @@ class HandleInertiaRequests extends Middleware
             // Fortify reports outcomes such as "reset link sent" through the session status.
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
+                'deleted_entry' => fn () => $request->session()->get('deleted_entry'),
             ],
+            // For the tag filter and the editor's tag suggestions, available on every screen.
+            'tags' => fn () => $request->user()
+                ? Tag::query()->whereHas('entries')->orderBy('name')->get(['name', 'slug'])
+                : [],
         ];
     }
 }

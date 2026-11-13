@@ -32,14 +32,16 @@ No tracker or PRD yet; the requirements and the "First Tasks" list in CLAUDE.md 
 
 - Backend scaffold (branch `feature/scaffold-backend`): Laravel 13, Pest, Fortify (web auth, registration and passkeys off, 2FA on), Inertia server side, Sanctum with `/api/v1` token issue, revoke and current-user endpoints.
 - Frontend scaffold (branch `feature/frontend-scaffold`, stacked on the backend branch): Vue 3 + Inertia client, Bootstrap dark theme, ESLint, Vitest, app shell with search box and user menu, `/` and `?` shortcuts, and all Fortify auth pages.
+- Entries and timeline (branch `feature/entries-timeline`): data model with FTS5 search, shared SaveEntry/TimelineQuery actions behind both the Inertia pages and the full `/api/v1` (entries, search, tags, attachments), timeline with day headings, infinite scroll, highlighted inline search, tag and date filters with chips, quick-add panel (`n`) with TipTap and image paste/drop/upload, entry page with editing, soft delete with Undo, and `j`/`k`/`Enter`/`o` keyboard navigation.
 
 ## Known gaps
 
-No task ids exist yet; these map to the "First Tasks" list in CLAUDE.md.
+No task tracker or ids yet.
 
+- **Login may not be wanted.** A request said "there is no auth"; login was kept pending confirmation. Removing it would also leave the API without a way to issue tokens.
 - No screen for turning on two-factor auth or managing the profile; the challenge page exists but nobody can enrol yet.
-- Timeline is an empty-state placeholder; the search box submits `?q=` but nothing reads it yet.
-- No quick-add panel, `n` or `j`/`k` shortcuts, tag or date filters.
-- No data model: entries, tags, attachments and the users `role` column are not migrated.
-- No entries CRUD, FTS5 search, timeline, or image upload.
-- No production environment chosen.
+- Uploaded images that are never used in an entry, or later removed from one, stay on disk; nothing prunes them.
+- No trash screen: deleted entries can only be restored from the Undo toast, the API, or the database.
+- No edit history; `updated_at` records only the last change.
+- Search results are in timeline order, not ranked by relevance.
+- Tags must contain at least one Latin letter or digit (slugs come from `Str::slug`), so tags written only in other scripts are rejected.

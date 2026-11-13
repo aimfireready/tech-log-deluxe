@@ -1,8 +1,14 @@
 import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import AppLayout from './layouts/AppLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Tech Log';
+
+// Dates are stored in UTC; the server uses this to make date filters match the days shown here.
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+router.on('before', (event) => {
+    event.detail.visit.headers['X-Timezone'] = timezone;
+});
 
 createInertiaApp({
     title: (title) => (title ? `${title} · ${appName}` : appName),
