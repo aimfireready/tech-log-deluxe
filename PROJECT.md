@@ -14,15 +14,22 @@ The web app (Inertia + Vue) is the primary surface. The `/api/v1` REST API is se
 
 Internal tool; no commercial model.
 
-- Shipped: nothing user-facing yet.
-- Designed only: everything in the requirements list in CLAUDE.md.
+- Shipped on `master`: login and password reset only.
+- Built, awaiting merge (`feature/entries-timeline`): the timeline, search, filters, editor, image uploads, and the full `/api/v1`.
+- Designed only, for a possible later public version:
+  - **Separate view and create permissions.** Some people could read the log without being able to add to or change it. Today any signed-in user can do everything; the `users.role` column is reserved for this.
+  - **Secure sharing of a single entry**, e.g. a link that opens just that entry for someone without an account. Nothing exists for this yet.
+
+## Hosting and access model
+
+The MVP runs on a LAN only, so access control is not a concern for it: the existing login is kept as-is, but nothing beyond it (per-user permissions, sharing, hardening for the open internet) is planned for the MVP. A future version may be hosted on a public web server. That would need the two "designed only" items above, plus HTTPS with `SESSION_SECURE_COOKIE=true` and a review of what the API exposes.
 
 ## Environments
 
 | Environment | Where | Notes |
 | --- | --- | --- |
 | Local | `composer dev` or `php artisan serve` on port 8000 | SQLite file at `database/database.sqlite`; mail goes to the log |
-| Production | A self-managed host pulling from the public GitHub repo `aimfireready/tech-log-deluxe` (`master`) | Steps in README "Deploying to a host". Never run `db:seed` there expecting a login; create one with `user:create`. Needs `npm run build` on every deploy, writable `storage/` and `database/`, `APP_DEBUG=false`, and a real mailer for password resets |
+| Production (MVP) | A self-managed host on the LAN, pulling from the public GitHub repo `aimfireready/tech-log-deluxe` (`master`) | Not exposed to the internet. Steps in README "Deploying to a host". Never run `db:seed` there expecting a login; create one with `user:create`. Needs `npm run build` on every deploy, writable `storage/` and `database/`, `APP_DEBUG=false`, and a real mailer for password resets |
 
 ## Task tracking
 
@@ -38,7 +45,7 @@ No tracker or PRD yet; the requirements and the "First Tasks" list in CLAUDE.md 
 
 No task tracker or ids yet.
 
-- **Login may not be wanted.** A request said "there is no auth"; login was kept pending confirmation. Removing it would also leave the API without a way to issue tokens.
+- No view-only access and no single-entry sharing; both are needed only if the app moves to public hosting (see "Hosting and access model").
 - No screen for turning on two-factor auth or managing the profile; the challenge page exists but nobody can enrol yet.
 - Uploaded images that are never used in an entry, or later removed from one, stay on disk; nothing prunes them.
 - No trash screen: deleted entries can only be restored from the Undo toast, the API, or the database.
