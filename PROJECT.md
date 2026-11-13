@@ -4,7 +4,7 @@ How to work on the code is in [README.md](README.md); agent instructions are in 
 
 ## Product
 
-A self-hosted IT change journal: a chronological, searchable, tagged log of config changes, installs, policy changes and staff changes, written in a rich-text editor with images. It is built so a successor can pick it up and maintain it.
+A Self-Hosted Tech Journal: a chronological, searchable, tagged log of config changes, installs, policy changes and staff changes, written in a rich-text editor with images. It is built so a successor can pick it up and maintain it.
 
 ## Surfaces
 
