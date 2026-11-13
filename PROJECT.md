@@ -14,8 +14,7 @@ The web app (Inertia + Vue) is the primary surface. The `/api/v1` REST API is se
 
 Internal tool; no commercial model.
 
-- Shipped on `master`: login and password reset only.
-- Built, awaiting merge (`feature/entries-timeline`): the timeline, search, filters, editor, image uploads, and the full `/api/v1`.
+- Shipped on `master`: login and password reset, the timeline with search and tag/date filters, the quick-add editor with image uploads, entry editing and soft delete with Undo, and the full `/api/v1`.
 - Designed only, for a possible later public version:
   - **Separate view and create permissions.** Some people could read the log without being able to add to or change it. Today any signed-in user can do everything; the `users.role` column is reserved for this.
   - **Secure sharing of a single entry**, e.g. a link that opens just that entry for someone without an account. Nothing exists for this yet.
