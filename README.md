@@ -68,6 +68,8 @@ composer dev            # Laravel server, queue, logs and Vite together
 
 Locally the seeder creates `test@example.com` / `password` and 15 sample entries; outside `local` and `testing` it creates nothing. There is no public sign-up; add users with `php artisan user:create`.
 
+With Laravel Herd the site is served at `http://tech-log-deluxe.test`. Pin it to a PHP version with `herd isolate 8.5` (8.4 also works): an unpinned site uses Herd's default PHP, and if no default is set (seen after a reboot) Herd answers every request with a 502.
+
 No env vars beyond the `.env.example` defaults are required for local work. Password-reset emails go to the `log` mailer by default (`storage/logs/laravel.log`).
 
 ## Deploying to a host
