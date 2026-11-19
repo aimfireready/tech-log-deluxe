@@ -187,9 +187,15 @@ Claude Desktop starts the server itself. Add it to `claude_desktop_config.json` 
 }
 ```
 
-On the same machine as the app, use `"command": "php"` with `"args": ["/var/web/tech-log/artisan", "mcp:start", "techlog"]` instead. SSH needs key auth with no passphrase prompt, because Desktop can't answer one. The command must run as a user who can write `database/` (see the permissions above).
+On the same machine as the app, use `"command": "php"` with `"args": ["/var/web/tech-log/artisan", "mcp:start", "techlog"]` instead; don't SSH to the host from itself. For SSH from another machine, that machine's host key must already be in `known_hosts` (run `ssh user@techlog-host true` once) and its public key in the host's `~/.ssh/authorized_keys` (`ssh-copy-id`), with no passphrase prompt, because Desktop can't answer either question. The command must run as a user who can write `database/` (see the permissions above).
 
-Try it without Desktop with `php artisan mcp:inspector techlog`, or by piping JSON-RPC lines into `php artisan mcp:start techlog`. Tests are in `tests/Feature/Mcp`.
+Try it without Desktop with `php artisan mcp:inspector techlog`, or by piping JSON-RPC lines in, which exits when the input ends:
+
+```sh
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"1"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | php artisan mcp:start techlog
+```
+
+Running `php artisan mcp:start techlog` on its own in a terminal is expected to look broken: it waits for input until you press Ctrl+D (or Ctrl+C), and every line you type that isn't JSON-RPC, including a bare Enter, prints `-32700 Parse error: Invalid JSON`. Tests are in `tests/Feature/Mcp`.
 
 ## Conventions
 
