@@ -82,6 +82,11 @@ function logout() {
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" :class="{ show: menuOpen }">
                             <li>
+                                <Link href="/read" class="dropdown-item">
+                                    Reading view
+                                </Link>
+                            </li>
+                            <li>
                                 <button type="button" class="dropdown-item" @click="logout">
                                     Log out
                                 </button>

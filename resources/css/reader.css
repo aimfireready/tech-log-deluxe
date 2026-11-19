@@ -1,0 +1,670 @@
+/*
+ * Reading view (/read): a publication-style look modelled on Ghost's Casper theme.
+ * Light by default, dark when the OS is. Everything is scoped under .gh so the
+ * Bootstrap app shell is untouched. System fonts only: nothing is fetched from a CDN.
+ */
+:root:has(.gh) {
+    --gh-bg: #ffffff;
+    --gh-fg: #15171a;
+    --gh-muted: #738a94;
+    --gh-rule: #e6e9eb;
+    --gh-surface: #f4f5f6;
+    --gh-accent: #1a6fd6;
+    --gh-footer-bg: #0a0b0c;
+    --gh-footer-fg: rgba(255, 255, 255, 0.7);
+    --gh-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --gh-serif: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
+    --gh-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
+    --gh-content: 720px;
+    --gh-wide: 1200px;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:has(.gh) {
+        --gh-bg: #151719;
+        --gh-fg: rgba(255, 255, 255, 0.88);
+        --gh-muted: #8a9aa3;
+        --gh-rule: #2b3034;
+        --gh-surface: #1f2225;
+        --gh-accent: #6db3ff;
+        --gh-footer-bg: #0b0c0d;
+        color-scheme: dark;
+    }
+}
+
+:root:has(.gh) body {
+    background: var(--gh-bg);
+}
+
+.gh {
+    background: var(--gh-bg);
+    color: var(--gh-fg);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--gh-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+.gh a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.gh :focus-visible {
+    outline: 2px solid var(--gh-accent);
+    outline-offset: 2px;
+}
+
+.gh-inner {
+    margin: 0 auto;
+    max-width: var(--gh-wide);
+    padding-inline: max(4vmin, 16px);
+    width: 100%;
+}
+
+/* Header */
+.gh-head {
+    border-bottom: 1px solid var(--gh-rule);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--gh-bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+.gh-head-inner {
+    align-items: center;
+    display: flex;
+    gap: 2rem;
+    height: 72px;
+}
+
+.gh-head-brand {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+.gh-head-menu {
+    display: flex;
+    flex: 1;
+    gap: 1.5rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.gh-head-menu a {
+    font-size: 0.95rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+.gh-head-menu a:hover,
+.gh-head-menu a[aria-current='page'] {
+    opacity: 1;
+    color: var(--gh-accent);
+}
+
+.gh-head-actions {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    margin-left: auto;
+}
+
+.gh-search {
+    background: var(--gh-surface);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: var(--gh-fg);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.35rem 0.9rem;
+    width: 11rem;
+    transition: width 0.2s ease;
+}
+
+.gh-search:focus {
+    border-color: var(--gh-accent);
+    outline: none;
+    width: 16rem;
+}
+
+.gh-button {
+    background: var(--gh-fg);
+    border-radius: 999px;
+    color: var(--gh-bg) !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.45rem 1rem;
+    white-space: nowrap;
+}
+
+.gh-button:hover {
+    opacity: 0.9;
+}
+
+/* Site masthead (home) and archive header (tags, search) */
+.gh-masthead {
+    padding-block: 6vmin 4vmin;
+    text-align: center;
+}
+
+.gh-masthead h1 {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0;
+}
+
+.gh-masthead p {
+    color: var(--gh-muted);
+    text-wrap: balance;
+    font-size: 1.2rem;
+    margin: 0.75rem auto 0;
+    max-width: 40rem;
+}
+
+.gh-archive {
+    border-bottom: 1px solid var(--gh-rule);
+    padding-block: 6vmin 4vmin;
+}
+
+.gh-archive .gh-eyebrow {
+    margin-bottom: 0.5rem;
+}
+
+.gh-archive h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0;
+    text-wrap: balance;
+}
+
+.gh-archive p {
+    color: var(--gh-muted);
+    margin: 0.75rem 0 0;
+}
+
+/*
+ * Feed: one centred column, the same width as a post's reading column, so the eye
+ * moves straight down. Archive and "Read more" headings line up with it.
+ */
+.gh-feed,
+.gh-archive .gh-inner,
+.gh-read-more .gh-inner {
+    max-width: calc(var(--gh-content) + 2 * max(4vmin, 16px));
+}
+
+.gh-feed {
+    display: flex;
+    flex-direction: column;
+    padding-block: 3vmin 6vmin;
+}
+
+/* A row: text on the left, an optional thumbnail on the right. */
+.gh-card {
+    align-items: start;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    padding-block: 2rem;
+}
+
+.gh-card + .gh-card {
+    border-top: 1px solid var(--gh-rule);
+}
+
+.gh-card-has-image {
+    grid-template-columns: minmax(0, 1fr) 9rem;
+}
+
+.gh-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.gh-card-image {
+    aspect-ratio: 4 / 3;
+    background: var(--gh-surface);
+    border-radius: 6px;
+    display: block;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* .gh prefix so it outranks the `.gh a` reset when the eyebrow is a link. */
+.gh .gh-eyebrow {
+    color: var(--gh-accent);
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.gh-card-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.gh-card-link:hover .gh-card-title {
+    opacity: 0.8;
+}
+
+.gh-card-excerpt {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: var(--gh-muted);
+    display: -webkit-box;
+    font-size: 0.95rem;
+    line-clamp: 2;
+    margin: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.gh-meta {
+    color: var(--gh-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.gh-meta .gh-dot::before {
+    content: '·';
+    margin-inline: 0.4em;
+}
+
+.gh-empty {
+    color: var(--gh-muted);
+    padding-block: 10vmin;
+    text-align: center;
+}
+
+.gh-empty h2 {
+    color: var(--gh-fg);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Skeletons */
+.gh-skeleton {
+    animation: gh-pulse 1.4s ease-in-out infinite;
+    background: var(--gh-surface);
+    border-radius: 4px;
+    min-height: 0.9rem;
+}
+
+@keyframes gh-pulse {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+/* Post */
+.gh-article {
+    padding-block: 8vmin 4vmin;
+}
+
+.gh-article-header {
+    margin: 0 auto;
+    max-width: var(--gh-content);
+}
+
+.gh-article-title {
+    font-size: clamp(2.4rem, 5.5vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    margin: 0.5rem 0 0;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+
+.gh-byline {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.gh-avatar {
+    align-items: center;
+    background: var(--gh-surface);
+    border: 1px solid var(--gh-rule);
+    border-radius: 50%;
+    display: inline-flex;
+    font-weight: 700;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+}
+
+.gh-byline-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.gh-feature {
+    margin: 4vmin auto 0;
+    max-width: var(--gh-wide);
+}
+
+.gh-feature img {
+    border-radius: 6px;
+    display: block;
+    height: auto;
+    max-height: 70vh;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Post body: serif reading column */
+.gh-content {
+    font-family: var(--gh-serif);
+    font-size: 1.25rem;
+    line-height: 1.65;
+    margin: 6vmin auto 0;
+    max-width: var(--gh-content);
+    overflow-wrap: anywhere;
+}
+
+.gh-content > * + * {
+    margin-top: 1.5em;
+}
+
+.gh-content p,
+.gh-content ul,
+.gh-content ol,
+.gh-content blockquote {
+    margin-bottom: 0;
+}
+
+.gh-content h2,
+.gh-content h3,
+.gh-content h4 {
+    font-family: var(--gh-sans);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-top: 2em;
+}
+
+.gh-content h2 {
+    font-size: 1.9rem;
+}
+
+.gh-content h3 {
+    font-size: 1.5rem;
+}
+
+.gh-content h4 {
+    font-size: 1.25rem;
+}
+
+.gh-content a {
+    color: var(--gh-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.gh-content li + li {
+    margin-top: 0.5em;
+}
+
+.gh-content blockquote {
+    border-left: 3px solid var(--gh-accent);
+    font-style: italic;
+    padding-left: 1.25em;
+}
+
+.gh-content hr {
+    border: 0;
+    border-top: 1px solid var(--gh-rule);
+    margin-block: 2.5em;
+    opacity: 1;
+}
+
+.gh-content img {
+    border-radius: 6px;
+    display: block;
+    height: auto;
+    margin-inline: auto;
+    max-width: 100%;
+}
+
+.gh-content code {
+    background: var(--gh-surface);
+    border-radius: 4px;
+    color: inherit;
+    font-family: var(--gh-mono);
+    font-size: 0.8em;
+    padding: 0.15em 0.35em;
+}
+
+.gh-content pre {
+    background: #15171a;
+    border: 0;
+    border-radius: 6px;
+    color: #e5eff5;
+    font-family: var(--gh-mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    padding: 1.25em 1.5em;
+}
+
+.gh-content pre code {
+    background: none;
+    font-size: inherit;
+    padding: 0;
+}
+
+.gh-content-empty {
+    color: var(--gh-muted);
+    font-style: italic;
+}
+
+.gh-article-footer {
+    align-items: center;
+    border-top: 1px solid var(--gh-rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 6vmin auto 0;
+    max-width: var(--gh-content);
+    padding-top: 2rem;
+}
+
+.gh-tag-pill {
+    background: var(--gh-surface);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.3rem 0.85rem;
+}
+
+.gh-tag-pill:hover {
+    color: var(--gh-accent);
+}
+
+.gh-article-footer .gh-edit {
+    color: var(--gh-muted);
+    font-size: 0.85rem;
+    margin-left: auto;
+}
+
+.gh-article-footer .gh-edit:hover {
+    color: var(--gh-accent);
+}
+
+.gh-pager {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr;
+    margin: 4vmin auto 0;
+    max-width: var(--gh-content);
+}
+
+.gh-pager a {
+    border: 1px solid var(--gh-rule);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 1rem 1.25rem;
+}
+
+.gh-pager a:hover {
+    border-color: var(--gh-accent);
+}
+
+.gh-pager .gh-pager-next {
+    grid-column: 2;
+    text-align: right;
+}
+
+.gh-pager strong {
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* "Read more": dark band of related posts, as Casper does */
+.gh-read-more {
+    background: var(--gh-footer-bg);
+    color: #fff;
+    margin-top: 8vmin;
+    padding-block: 8vmin;
+}
+
+.gh-read-more h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 4vmin;
+}
+
+.gh-read-more .gh-feed {
+    padding-block: 0;
+}
+
+.gh-read-more .gh-card + .gh-card {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.gh-read-more .gh-card-excerpt,
+.gh-read-more .gh-meta {
+    color: rgba(255, 255, 255, 0.64);
+}
+
+.gh-read-more .gh-eyebrow {
+    color: #8cc3ff;
+}
+
+.gh-read-more .gh-card-image,
+.gh-read-more .gh-skeleton {
+    background: #1f2225;
+}
+
+/* Footer */
+.gh-foot {
+    background: var(--gh-footer-bg);
+    color: var(--gh-footer-fg);
+    font-size: 0.875rem;
+    margin-top: auto;
+    padding-block: 3rem;
+}
+
+.gh-read-more + .gh-foot {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gh-foot-inner {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    justify-content: space-between;
+}
+
+.gh-foot a:hover {
+    color: #fff;
+}
+
+.gh-foot nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+@media (max-width: 767px) {
+    .gh-head-menu {
+        display: none;
+    }
+
+    .gh-head-inner {
+        gap: 1rem;
+    }
+
+    .gh-search,
+    .gh-search:focus {
+        width: 100%;
+    }
+
+    .gh-head-actions {
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    .gh-head-actions form {
+        flex: 1;
+        max-width: 14rem;
+    }
+
+    .gh-card-has-image {
+        grid-template-columns: minmax(0, 1fr) 5.5rem;
+    }
+
+    .gh-content {
+        font-size: 1.125rem;
+    }
+
+    .gh-pager {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .gh-pager .gh-pager-next {
+        grid-column: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gh-skeleton {
+        animation: none;
+    }
+
+    .gh-search {
+        transition: none;
+    }
+}

@@ -63,3 +63,14 @@ it('turns plain text into paragraphs and line breaks, escaping markup', function
         ->toBe('<p>First line<br>second &lt;b&gt;line&lt;/b&gt;</p><p>Next para</p>')
         ->and(EntryHtml::fromText("  \n "))->toBe('');
 });
+
+it('finds the first image to use as a feature image', function () {
+    expect(EntryHtml::firstImage('<p>x</p><img src="/storage/a.png" alt=""><img src="/storage/b.png">'))->toBe('/storage/a.png')
+        ->and(EntryHtml::firstImage('<p>no images</p>'))->toBeNull();
+});
+
+it('estimates reading time in whole minutes, at least one', function () {
+    expect(EntryHtml::readingMinutes(''))->toBe(1)
+        ->and(EntryHtml::readingMinutes(str_repeat('word ', 265)))->toBe(1)
+        ->and(EntryHtml::readingMinutes(str_repeat('word ', 266)))->toBe(2);
+});

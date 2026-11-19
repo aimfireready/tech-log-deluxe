@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\ReaderController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -16,4 +17,11 @@ Route::middleware('auth')->group(function () {
         ->name('entries.restore');
 
     Route::post('/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
+
+    // Read-only, blog-style reading view.
+    Route::prefix('read')->name('reader.')->controller(ReaderController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tags/{tag:slug}', 'tag')->name('tag');
+        Route::get('/entries/{entry}', 'show')->name('show');
+    });
 });

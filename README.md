@@ -47,10 +47,11 @@ config/techlog.php          App settings: the MCP server's acting user and timez
 database/                   Migrations, factories, seeders, local database.sqlite
 resources/views/app.blade.php  Inertia root template (the only Blade view)
 resources/css/app.css       Bootstrap import plus the app's colour tokens
+resources/css/reader.css    The reading view's own styles, all scoped under .gh
 resources/js/app.js         Inertia bootstrap; gives every page AppLayout unless it opts out
 resources/js/pages/         One Vue file per Inertia page, named by route (auth/login, timeline/index)
-resources/js/layouts/       AppLayout (top bar, search, shortcuts) and AuthLayout (centred card)
-resources/js/components/    Shared Vue components
+resources/js/layouts/       AppLayout (top bar, search, shortcuts), AuthLayout (centred card), ReaderLayout (/read)
+resources/js/components/    Shared Vue components; reader/ holds the reading view's post cards and feed
 resources/js/composables/   Shared state and logic (useShortcuts, useTimeline, useQuickAdd)
 resources/js/utils/         Plain functions: dates, tags, uploads; *.test.js files sit beside the code
 routes/web.php              Inertia page routes (session auth)
@@ -139,6 +140,7 @@ Feature tests use an in-memory SQLite database with `RefreshDatabase`, and call 
 - **Images** are uploaded before the entry exists (`POST /attachments`, raster types only, 10 MB, content-sniffed), stored on the `public` disk under `attachments/Y/m/`, and returned as root-relative `/storage/...` URLs so they work on any host name. `entry_id` is filled when an entry body first references the file.
 - **The editor is loaded on demand.** `RichEditor` (TipTap) is imported with `defineAsyncComponent`, keeping it out of the main bundle.
 - **Deleting is a soft delete** with an 8-second Undo toast driven by the `flash.deleted_entry` shared prop; `POST /entries/{id}/restore` brings it back.
+- **The reading view (`/read`) is a second, read-only look at the same entries**, styled after a Ghost/Casper blog: a single centred column of posts (like Casper's "List" feed layout) with search, tag archives, and post pages with older/newer links and deferred "Read more". `ReaderController` reuses `TimelineQuery`; `PostCardResource` adds `feature_image` (the first `<img>` in the body), `reading_minutes` (265 words a minute) and `primary_tag` (the first tag), and leaves the body out of feeds. Its pages set `layout: ReaderLayout`, and its CSS in `reader.css` is scoped under `.gh`, light by default and dark when the OS is, with system fonts only. Writing and editing stay in the main app; each post links back with "Edit in app".
 - **Any page render needs a Vite build** (`npm run build`) or a running `npm run dev`; without one the root view throws "Vite manifest not found".
 
 ## REST API

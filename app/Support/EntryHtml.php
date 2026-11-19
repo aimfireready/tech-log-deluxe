@@ -24,6 +24,24 @@ class EntryHtml
     }
 
     /**
+     * The first image in a (sanitized) body, used as the reading view's feature image.
+     */
+    public static function firstImage(string $html): ?string
+    {
+        return preg_match('#<img[^>]+src="([^"]+)"#i', $html, $match)
+            ? html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : null;
+    }
+
+    /**
+     * Reading time at 265 words a minute, the rate Ghost uses, rounded up; never zero.
+     */
+    public static function readingMinutes(string $text): int
+    {
+        return max(1, (int) ceil(str_word_count($text) / 265));
+    }
+
+    /**
      * Plain text from a non-editor source (MCP, imports) as escaped editor HTML:
      * blank lines start a new paragraph, single newlines become <br>.
      */
