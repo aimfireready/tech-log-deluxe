@@ -57,3 +57,9 @@ it('lists referenced upload paths once each', function () {
 
     expect(EntryHtml::attachmentPaths($html))->toBe(['attachments/2026/11/a.png', 'attachments/2026/11/c.webp']);
 });
+
+it('turns plain text into paragraphs and line breaks, escaping markup', function () {
+    expect(EntryHtml::fromText("First line\nsecond <b>line</b>\r\n\r\n\nNext para  "))
+        ->toBe('<p>First line<br>second &lt;b&gt;line&lt;/b&gt;</p><p>Next para</p>')
+        ->and(EntryHtml::fromText("  \n "))->toBe('');
+});

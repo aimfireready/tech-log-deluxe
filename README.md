@@ -39,8 +39,11 @@ app/
   Http/Requests/            Form Requests, shared by both surfaces where possible
   Http/Resources/           API Resources shaping REST output
   Http/Middleware/          HandleInertiaRequests (shared Inertia props)
+  Mcp/Servers/              TechLogServer: the MCP server Claude Desktop talks to
+  Mcp/Tools/                One class per MCP tool (search, get, list tags, create)
   Providers/                FortifyServiceProvider maps auth screens to Inertia pages
 config/fortify.php          Which auth features are on
+config/techlog.php          App settings: the MCP server's acting user and timezone
 database/                   Migrations, factories, seeders, local database.sqlite
 resources/views/app.blade.php  Inertia root template (the only Blade view)
 resources/css/app.css       Bootstrap import plus the app's colour tokens
@@ -52,6 +55,7 @@ resources/js/composables/   Shared state and logic (useShortcuts, useTimeline, u
 resources/js/utils/         Plain functions: dates, tags, uploads; *.test.js files sit beside the code
 routes/web.php              Inertia page routes (session auth)
 routes/api.php              /api/v1 routes (Sanctum tokens)
+routes/ai.php               MCP server registration (local stdio handle "techlog")
 tests/Feature/              Pest feature tests, one folder per surface
 ```
 
@@ -97,6 +101,8 @@ Set these in `.env` before going live:
 | `APP_URL` | the public URL; password-reset links are built from it |
 | `MAIL_MAILER` and `MAIL_*` | a real mailer, or reset emails only reach the log |
 | `SESSION_SECURE_COOKIE` | `true` when served over HTTPS |
+| `TECHLOG_MCP_USER` | optional: email of the user MCP-created entries are credited to; unset leaves the MCP server read-only |
+| `TECHLOG_MCP_TIMEZONE` | optional: IANA timezone for MCP search date filters, e.g. `America/Indiana/Indianapolis` (default `UTC`) |
 
 Uploaded images live in `storage/app/public/attachments` and are not in git; back them up with the database. The web server user must be able to write `storage/`, `bootstrap/cache/`, and both `database/database.sqlite` and the `database/` directory (SQLite writes a journal file beside the database). To update: `git pull`, then rerun the `composer install`, `npm ci && npm run build`, `migrate --force` and `optimize` steps.
 
@@ -118,7 +124,7 @@ Feature tests use an in-memory SQLite database with `RefreshDatabase`, and call 
 
 ## Architecture notes
 
-- **Two surfaces, one app.** The browser gets Inertia pages from `routes/web.php` with session auth. External clients use `/api/v1` with Sanctum bearer tokens issued by `POST /api/v1/tokens`. Business logic belongs in `app/Actions` so both controller sets call the same code.
+- **Three surfaces, one app.** The browser gets Inertia pages from `routes/web.php` with session auth. External clients use `/api/v1` with Sanctum bearer tokens issued by `POST /api/v1/tokens`. MCP clients such as Claude Desktop use the stdio server in `app/Mcp`. Business logic belongs in `app/Actions` so all three call the same code.
 - **Fortify owns the auth routes** (`/login`, `/logout`, `/forgot-password`, `/reset-password/{token}`, `/two-factor-challenge`, `/user/confirm-password`). They don't appear in `routes/web.php`; run `php artisan route:list` to see them. Their GET screens are wired to Inertia pages in `FortifyServiceProvider`.
 - **Token requests share the `login` rate limiter** (5 per minute per email and IP) defined in `FortifyServiceProvider`.
 - **Layouts are applied in `app.js`.** A page gets `AppLayout` by default; auth pages declare `defineOptions({ layout: false })` and wrap themselves in `AuthLayout`. Inertia keeps a persistent layout mounted across visits, so the search box and shortcuts survive navigation.
@@ -159,6 +165,29 @@ TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/tokens -H 'Accept: applicat
   -d email=test@example.com -d password=password -d device_name=cli | jq -r .token)
 curl -s -H "Authorization: Bearer $TOKEN" 'http://localhost:8000/api/v1/entries?q=nginx' | jq '.data[].title'
 ```
+
+## MCP server (Claude Desktop)
+
+`laravel/mcp` exposes a local stdio MCP server registered in `routes/ai.php` as `techlog`. It has four tools: `search-entries` (the timeline filters, capped at 50 results), `get-entry`, `list-tags` (all read-only), and `create-entry`. There is deliberately no update or delete tool. The tools are thin wrappers over `TimelineQuery` and `SaveEntry`; `create-entry` validates with `StoreEntryRequest`'s rules, so sanitizing, tags and search indexing behave exactly as on the other surfaces. Plain-text bodies (`format: "text"`, the default) are converted with `EntryHtml::fromText()`.
+
+stdio has no login, so the server acts as the user named by `TECHLOG_MCP_USER`. Anyone who can run `artisan` on the host can already read the database, so this adds no new access; leave the variable unset to make the server read-only. Because production runs `php artisan optimize`, rerun it after changing either `TECHLOG_MCP_*` variable.
+
+Claude Desktop starts the server itself. Add it to `claude_desktop_config.json` (Settings → Developer → Edit Config) and restart Desktop:
+
+```json
+{
+  "mcpServers": {
+    "techlog": {
+      "command": "ssh",
+      "args": ["-T", "user@techlog-host", "php /var/web/tech-log/artisan mcp:start techlog"]
+    }
+  }
+}
+```
+
+On the same machine as the app, use `"command": "php"` with `"args": ["/var/web/tech-log/artisan", "mcp:start", "techlog"]` instead. SSH needs key auth with no passphrase prompt, because Desktop can't answer one. The command must run as a user who can write `database/` (see the permissions above).
+
+Try it without Desktop with `php artisan mcp:inspector techlog`, or by piping JSON-RPC lines into `php artisan mcp:start techlog`. Tests are in `tests/Feature/Mcp`.
 
 ## Conventions
 

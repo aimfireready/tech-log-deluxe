@@ -8,7 +8,7 @@ A Self-Hosted Tech Journal: a chronological, searchable, tagged log of config ch
 
 ## Surfaces
 
-The web app (Inertia + Vue) is the primary surface. The `/api/v1` REST API is secondary, for scripts and external tools.
+The web app (Inertia + Vue) is the primary surface. The `/api/v1` REST API is secondary, for scripts and external tools. A local MCP server (`php artisan mcp:start techlog`) lets Claude Desktop search, read and add entries.
 
 ## Business model
 
@@ -40,6 +40,9 @@ No tracker or PRD yet; the requirements and the "First Tasks" list in CLAUDE.md 
 - Frontend scaffold (branch `feature/frontend-scaffold`, stacked on the backend branch): Vue 3 + Inertia client, Bootstrap dark theme, ESLint, Vitest, app shell with search box and user menu, `/` and `?` shortcuts, and all Fortify auth pages.
 - Entries and timeline (branch `feature/entries-timeline`): data model with FTS5 search, shared SaveEntry/TimelineQuery actions behind both the Inertia pages and the full `/api/v1` (entries, search, tags, attachments), timeline with day headings, infinite scroll, highlighted inline search, tag and date filters with chips, quick-add panel (`n`) with TipTap and image paste/drop/upload, entry page with editing, soft delete with Undo, and `j`/`k`/`Enter`/`o` keyboard navigation.
 
+- MCP server (branch `feature/mcp-server`): `laravel/mcp` stdio server with `search-entries`, `get-entry`, `list-tags` and `create-entry` tools over the shared actions, acting as the user in `TECHLOG_MCP_USER`; Claude Desktop connects over SSH.
+- Imported the 942-entry Google Form log (2020–2026) into production on 2026-11-18 as a one-off script; entries have no tags.
+
 ## Known gaps
 
 No task tracker or ids yet.
@@ -50,4 +53,6 @@ No task tracker or ids yet.
 - No trash screen: deleted entries can only be restored from the Undo toast, the API, or the database.
 - No edit history; `updated_at` records only the last change.
 - Search results are in timeline order, not ranked by relevance.
+- The MCP server can't edit or delete entries, and every MCP write is credited to the one `TECHLOG_MCP_USER`, not to the person using Claude.
+- Production doesn't set `TECHLOG_MCP_USER` yet, so its MCP server is read-only until it's added.
 - Tags must contain at least one Latin letter or digit (slugs come from `Str::slug`), so tags written only in other scripts are rejected.

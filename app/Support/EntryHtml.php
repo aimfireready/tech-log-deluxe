@@ -24,6 +24,25 @@ class EntryHtml
     }
 
     /**
+     * Plain text from a non-editor source (MCP, imports) as escaped editor HTML:
+     * blank lines start a new paragraph, single newlines become <br>.
+     */
+    public static function fromText(string $text): string
+    {
+        $text = trim(str_replace(["\r\n", "\r"], "\n", $text));
+
+        if ($text === '') {
+            return '';
+        }
+
+        return collect(preg_split("/\n\s*\n/", $text))
+            ->map(fn (string $paragraph) => '<p>'.collect(explode("\n", trim($paragraph, "\n")))
+                ->map(fn (string $line) => e(rtrim($line)))
+                ->implode('<br>').'</p>')
+            ->implode('');
+    }
+
+    /**
      * Plain text for the FTS index: block boundaries become line breaks so words don't run together.
      */
     public static function toText(string $html): string

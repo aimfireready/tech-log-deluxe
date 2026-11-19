@@ -63,7 +63,8 @@ Nice to have:
 - Timeline uses cursor pagination, appended on scroll with Inertia's merge props; search and tag/date filters are query-string partial reloads of the timeline page
 - Editor image uploads are the one JSON endpoint the pages call directly (TipTap needs a URL back), on the `web` guard
 - REST API for external clients in `routes/api.php`: versioned under `/api/v1`, resources entries, tags, attachments, search, cursor pagination, Sanctum tokens
-- Two thin controller sets (`App\Http\Controllers` for Inertia, `App\Http\Controllers\Api\V1` for REST) share one set of action classes in `app/Actions`, so tag syncing, HTML sanitizing, and `body_text` extraction exist exactly once. Any behaviour change goes in the action and gets tests on both surfaces
+- MCP server for Claude Desktop in `routes/ai.php` (`laravel/mcp`, local stdio handle `techlog`), tools in `app/Mcp/Tools`. It acts as the user in `TECHLOG_MCP_USER` and has no update or delete tools
+- Three thin surfaces (`App\Http\Controllers` for Inertia, `App\Http\Controllers\Api\V1` for REST, `App\Mcp\Tools` for MCP) share one set of action classes in `app/Actions`, so tag syncing, HTML sanitizing, and `body_text` extraction exist exactly once. Any behaviour change goes in the action and gets tests on every surface it reaches
 - Validate with Form Requests shared by both; shape REST output with API Resources and keep Inertia props equally explicit (no raw models passed to pages)
 
 ## Conventions
