@@ -55,7 +55,7 @@ defineProps({
                 <Link v-for="tag in post.tags" :key="tag.slug" :href="`/read/tags/${tag.slug}`" class="gh-tag-pill">
                     {{ tag.name }}
                 </Link>
-                <Link :href="`/entries/${post.id}`" class="gh-edit">
+                <Link v-if="$page.props.auth?.user" :href="`/entries/${post.id}`" class="gh-edit">
                     Edit in app →
                 </Link>
             </footer>

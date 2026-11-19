@@ -18,4 +18,19 @@ return [
         'timezone' => env('TECHLOG_MCP_TIMEZONE', 'UTC'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reading view share key (/read?key=...)
+    |--------------------------------------------------------------------------
+    |
+    | Anyone who opens /read?key=<this value> can browse the read-only reading view
+    | without logging in, until their session expires. Leave it unset to require a login.
+    | Change it to cut off everyone who has the old link.
+    |
+    */
+
+    'reader' => [
+        'key' => env('TECHLOG_READ_KEY'),
+    ],
+
 ];

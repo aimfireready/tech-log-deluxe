@@ -1,6 +1,6 @@
 <script setup>
 import '../../css/reader.css';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useShortcuts } from '../composables/useShortcuts';
 
@@ -20,6 +20,9 @@ function search() {
 }
 
 const isCurrentTag = (slug) => page.url === `/read/tags/${slug}`;
+
+// Visitors who came in with the share key aren't signed in, so they get no app links.
+const signedIn = computed(() => Boolean(page.props.auth?.user));
 </script>
 
 <template>
@@ -57,7 +60,7 @@ const isCurrentTag = (slug) => page.url === `/read/tags/${slug}`;
                             @keydown.esc="searchInput.blur()"
                         >
                     </form>
-                    <Link href="/" class="gh-button">
+                    <Link v-if="signedIn" href="/" class="gh-button">
                         Open app
                     </Link>
                 </div>
@@ -75,10 +78,15 @@ const isCurrentTag = (slug) => page.url === `/read/tags/${slug}`;
                     <Link href="/read">
                         Latest
                     </Link>
-                    <Link href="/">
+                    <Link v-if="signedIn" href="/">
                         Timeline
                     </Link>
-                    <button type="button" class="btn btn-link p-0 text-reset text-decoration-none small" @click="router.post('/logout')">
+                    <button
+                        v-if="signedIn"
+                        type="button"
+                        class="btn btn-link p-0 text-reset text-decoration-none small"
+                        @click="router.post('/logout')"
+                    >
                         Log out
                     </button>
                 </nav>

@@ -18,6 +18,55 @@ it('requires a login', function () {
     $this->get('/read/tags/x')->assertRedirect('/login');
 });
 
+describe('share key', function () {
+    beforeEach(function () {
+        auth()->logout();
+        config(['techlog.reader.key' => 'secret-share-key']);
+        $this->entry = Entry::factory()->create(['title' => 'shared']);
+    });
+
+    it('lets a guest in with the key, remembers it, and drops it from the URL', function () {
+        $this->get('/read?key=secret-share-key&q=shared')
+            ->assertRedirect('/read?q=shared');
+
+        $this->get('/read')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('reader/index')
+                ->where('auth.user', null)
+                ->where('posts.data.0.title', 'shared'));
+        $this->get("/read/entries/{$this->entry->id}")->assertOk();
+    });
+
+    it('rejects a wrong key', function () {
+        $this->get('/read?key=wrong')->assertRedirect('/login');
+        $this->get('/read')->assertRedirect('/login');
+    });
+
+    it('does nothing when no key is configured', function () {
+        config(['techlog.reader.key' => null]);
+
+        $this->get('/read?key=')->assertRedirect('/login');
+        $this->get('/read')->assertRedirect('/login');
+    });
+
+    it('locks out old links when the key changes', function () {
+        $this->get('/read?key=secret-share-key');
+        config(['techlog.reader.key' => 'new-key']);
+
+        $this->get('/read')->assertRedirect('/login');
+    });
+
+    it('opens only the reading view, not the app or its API', function () {
+        $this->get('/read?key=secret-share-key');
+
+        $this->get('/')->assertRedirect('/login');
+        $this->get("/entries/{$this->entry->id}")->assertRedirect('/login');
+        $this->post('/attachments')->assertRedirect('/login');
+        $this->getJson('/api/v1/entries?key=secret-share-key')->assertUnauthorized();
+    });
+});
+
 it('renders the home feed as post cards, newest first, without bodies', function () {
     Entry::factory()->create(['title' => 'older', 'occurred_at' => now()->subDay()]);
     Entry::factory()->for($this->user)->create([

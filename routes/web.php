@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\ReaderController;
+use App\Http\Middleware\AllowReaderKey;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -17,11 +18,12 @@ Route::middleware('auth')->group(function () {
         ->name('entries.restore');
 
     Route::post('/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
+});
 
-    // Read-only, blog-style reading view.
-    Route::prefix('read')->name('reader.')->controller(ReaderController::class)->group(function () {
+// Read-only, blog-style reading view: signed-in users, or anyone with the share key.
+Route::middleware(AllowReaderKey::class)
+    ->prefix('read')->name('reader.')->controller(ReaderController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/tags/{tag:slug}', 'tag')->name('tag');
         Route::get('/entries/{entry}', 'show')->name('show');
     });
-});
