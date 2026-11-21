@@ -29,6 +29,7 @@ The MVP runs on a LAN only, so access control is not a concern for it: the exist
 | --- | --- | --- |
 | Local | `composer dev` or `php artisan serve` on port 8000 | SQLite file at `database/database.sqlite`; mail goes to the log |
 | Production (MVP) | A self-managed host on the LAN, pulling from the public GitHub repo `aimfireready/tech-log-deluxe` (`master`) | Not exposed to the internet. Steps in README "Deploying to a host". Never run `db:seed` there expecting a login; create one with `user:create`. Needs `npm run build` on every deploy, writable `storage/` and `database/`, `APP_DEBUG=false`, and a real mailer for password resets |
+| Docker (optional) | `Dockerfile` at the repo root: one Apache + PHP 8.4 container, data in a `storage` volume | Not used by production yet, and the image has never been built (no Docker on the dev machine when it was written). Steps in README "Running with Docker"; needs `APP_KEY`, and `TRUSTED_PROXIES` behind a TLS proxy |
 
 ## Task tracking
 
@@ -44,6 +45,7 @@ No tracker or PRD yet; the requirements and the "First Tasks" list in CLAUDE.md 
 - Imported the 942-entry Google Form log (2020–2026) into production on 2026-11-18 as a one-off script; entries have no tags.
 - Reading view (branch `feature/ghost-reader`): Ghost/Casper-style `/read` with a post-card home feed, search, tag archives, serif post pages with reading time, older/newer links and related posts, in light and dark; linked from the user menu.
 - Reading view share key (branch `feature/reader-share-key`): `TECHLOG_READ_KEY` lets `/read?key=…` open the reading view without a login; changing the key revokes every old link.
+- Docker image (branch `feature/dockerfile`): multi-stage `Dockerfile` (Node build, `php:8.4-apache` runtime) with an entrypoint that prepares the storage volume, migrates and caches; plus `TRUSTED_PROXIES` support via `config/trustedproxy.php`.
 
 ## Known gaps
 
@@ -57,4 +59,5 @@ No task tracker or ids yet.
 - Search results are in timeline order, not ranked by relevance.
 - The reading view has no author pages, no RSS feed, and no light/dark toggle (it follows the OS). Most imported entries have no tags or images, so their cards show neither.
 - The MCP server can't edit or delete entries, and every MCP write is credited to the one `TECHLOG_MCP_USER`, not to the person using Claude.
+- The Docker image is untested: it has not been built or run anywhere yet.
 - Tags must contain at least one Latin letter or digit (slugs come from `Str::slug`), so tags written only in other scripts are rejected.

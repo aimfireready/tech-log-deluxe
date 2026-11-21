@@ -38,12 +38,13 @@ app/
   Http/Controllers/Api/V1/  REST API controllers (/api/v1)
   Http/Requests/            Form Requests, shared by both surfaces where possible
   Http/Resources/           API Resources shaping REST output
-  Http/Middleware/          HandleInertiaRequests (shared Inertia props)
+  Http/Middleware/          HandleInertiaRequests (shared Inertia props), AllowReaderKey (/read access)
   Mcp/Servers/              TechLogServer: the MCP server Claude Desktop talks to
   Mcp/Tools/                One class per MCP tool (search, get, list tags, create)
   Providers/                FortifyServiceProvider maps auth screens to Inertia pages
 config/fortify.php          Which auth features are on
-config/techlog.php          App settings: the MCP server's acting user and timezone
+config/techlog.php          App settings: the MCP server's acting user and timezone, the /read share key
+config/trustedproxy.php     Reverse proxies whose X-Forwarded-* headers are trusted (TRUSTED_PROXIES)
 database/                   Migrations, factories, seeders, local database.sqlite
 resources/views/app.blade.php  Inertia root template (the only Blade view)
 resources/css/app.css       Bootstrap import plus the app's colour tokens
@@ -58,6 +59,8 @@ routes/web.php              Inertia page routes (session auth)
 routes/api.php              /api/v1 routes (Sanctum tokens)
 routes/ai.php               MCP server registration (local stdio handle "techlog")
 tests/Feature/              Pest feature tests, one folder per surface
+Dockerfile                  Production image: Node stage builds assets, PHP 8.4 + Apache stage serves public/
+docker/                     The image's entrypoint (storage setup, migrate, optimize) and php.ini
 ```
 
 ## Setup
@@ -104,9 +107,29 @@ Set these in `.env` before going live:
 | `SESSION_SECURE_COOKIE` | `true` when served over HTTPS |
 | `TECHLOG_MCP_USER` | optional: email of the user MCP-created entries are credited to; unset leaves the MCP server read-only |
 | `TECHLOG_MCP_TIMEZONE` | optional: IANA timezone for MCP search date filters, e.g. `America/Indiana/Indianapolis` (default `UTC`) |
+| `TRUSTED_PROXIES` | optional: comma-separated IPs/CIDRs (or `*`) of a TLS-terminating reverse proxy, so URLs and secure cookies use https; unset trusts none |
 | `TECHLOG_READ_KEY` | optional: share key for the reading view; `/read?key=<value>` opens it without a login. Generate with `php -r 'echo bin2hex(random_bytes(24)), PHP_EOL;'`; unset requires a login |
 
 Uploaded images live in `storage/app/public/attachments` and are not in git; back them up with the database. The web server user must be able to write `storage/`, `bootstrap/cache/`, and both `database/database.sqlite` and the `database/` directory (SQLite writes a journal file beside the database). To update: `git pull`, then rerun the `composer install`, `npm ci && npm run build`, `migrate --force` and `optimize` steps.
+
+## Running with Docker
+
+The `Dockerfile` builds a single production image: a Node 26 stage runs `npm ci && npm run build`, then a `php:8.4-apache` stage installs Composer dependencies without dev packages and serves `public/`. There is no scheduler and nothing is queued, so one container is the whole app. Everything that must survive a rebuild (the SQLite database at `storage/database.sqlite`, uploaded images, logs) lives in the `/var/www/html/storage` volume; back that up.
+
+```sh
+docker build -t tech-log .
+docker run --rm tech-log php artisan key:generate --show      # once; keep the key
+docker run -d --name techlog -p 8080:80 -v techlog-storage:/var/www/html/storage \
+  -e APP_KEY=base64:... -e APP_URL=https://techlog.example \
+  -e TRUSTED_PROXIES=172.16.0.0/12 -e SESSION_SECURE_COOKIE=true \
+  -e MAIL_MAILER=smtp -e MAIL_HOST=... \
+  tech-log
+docker exec -it -u www-data techlog php artisan user:create
+```
+
+On every start the entrypoint (`docker/entrypoint.sh`) recreates the storage layout on an empty volume, creates the database file if missing, runs `migrate --force`, and caches config and routes with `optimize`, so environment changes take effect on `docker restart`. It refuses to start Apache without `APP_KEY`. The image sets `APP_ENV=production`, `APP_DEBUG=false` and logs to stderr (`docker logs techlog`); pass the rest of the variables from "Deploying to a host" with `-e` or `--env-file`. Run artisan commands as `www-data` (`docker exec -u www-data`), or files they create in the volume end up owned by root.
+
+Put a TLS-terminating proxy such as Caddy in front and set `TRUSTED_PROXIES` to the proxy's address (the Docker bridge range above, if Caddy runs on the host). For Claude Desktop, use `"command": "docker"` with `"args": ["exec", "-i", "-u", "www-data", "techlog", "php", "artisan", "mcp:start", "techlog"]`.
 
 ## Tests and linting
 
