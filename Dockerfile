@@ -20,7 +20,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends unzip sqlite3 \
     && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-install opcache \
-    && a2enmod rewrite headers
+    && a2enmod rewrite headers \
+    && echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf \
+    && a2enconf servername
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY docker/php.ini /usr/local/etc/php/conf.d/tech-log.ini
