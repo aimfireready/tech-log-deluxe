@@ -29,7 +29,7 @@ The MVP runs on a LAN only, so access control is not a concern for it: the exist
 | --- | --- | --- |
 | Local | `composer dev` or `php artisan serve` on port 8000 | SQLite file at `database/database.sqlite`; mail goes to the log |
 | Production (MVP) | A self-managed host on the LAN, pulling from the public GitHub repo `aimfireready/tech-log-deluxe` (`master`) | Not exposed to the internet. Steps in README "Deploying to a host". Never run `db:seed` there expecting a login; create one with `user:create`. Needs `npm run build` on every deploy, writable `storage/` and `database/`, `APP_DEBUG=false`, and a real mailer for password resets |
-| Docker (optional) | `Dockerfile` at the repo root: one Apache + PHP 8.4 container, data in a `storage` volume | Not used by production yet, and the image has never been built (no Docker on the dev machine when it was written). Steps in README "Running with Docker"; needs `APP_KEY`, and `TRUSTED_PROXIES` behind a TLS proxy |
+| Docker (optional) | `Dockerfile` at the repo root: one Apache + PHP 8.4 container, data in a `storage` volume | Not used by production yet. The image builds (checked 2026-11-21), but a container hasn't been run yet. Steps in README "Running with Docker"; needs `APP_KEY`, and `TRUSTED_PROXIES` behind a TLS proxy |
 
 ## Task tracking
 
@@ -59,5 +59,5 @@ No task tracker or ids yet.
 - Search results are in timeline order, not ranked by relevance.
 - The reading view has no author pages, no RSS feed, and no light/dark toggle (it follows the OS). Most imported entries have no tags or images, so their cards show neither.
 - The MCP server can't edit or delete entries, and every MCP write is credited to the one `TECHLOG_MCP_USER`, not to the person using Claude.
-- The Docker image is untested: it has not been built or run anywhere yet.
+- The Docker image builds, but no container has been run from it yet.
 - Tags must contain at least one Latin letter or digit (slugs come from `Str::slug`), so tags written only in other scripts are rejected.
