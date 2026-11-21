@@ -29,3 +29,6 @@ Thumbs.db
 # Local-only incident log
 /MISTAKES.md
 Zarchive/
+
+# Docker Compose settings (copy of .env.docker.example)
+/.env.docker

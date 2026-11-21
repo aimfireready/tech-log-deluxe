@@ -29,7 +29,7 @@ The MVP runs on a LAN only, so access control is not a concern for it: the exist
 | --- | --- | --- |
 | Local | `composer dev` or `php artisan serve` on port 8000 | SQLite file at `database/database.sqlite`; mail goes to the log |
 | Production (MVP) | A self-managed host on the LAN, pulling from the public GitHub repo `aimfireready/tech-log-deluxe` (`master`) | Not exposed to the internet. Steps in README "Deploying to a host". Never run `db:seed` there expecting a login; create one with `user:create`. Needs `npm run build` on every deploy, writable `storage/` and `database/`, `APP_DEBUG=false`, and a real mailer for password resets |
-| Docker (optional) | `Dockerfile` at the repo root: one Apache + PHP 8.4 container, data in a `storage` volume | Not used by production yet. Built and run on 2026-11-21: migrations ran, and `/up` and `/login` returned 200. Steps in README "Running with Docker"; needs `APP_KEY`, and `TRUSTED_PROXIES` behind a TLS proxy |
+| Docker (optional) | `Dockerfile` and `docker-compose.yml` at the repo root: one Apache + PHP 8.4 container, data in a `storage` volume, settings in `.env.docker` | Not used by production yet. Built and run on 2026-11-21: migrations ran, and `/up` and `/login` returned 200. Steps in README "Running with Docker"; needs `APP_KEY`, and `TRUSTED_PROXIES` behind a TLS proxy |
 
 ## Task tracking
 
@@ -46,6 +46,7 @@ No tracker or PRD yet; the requirements and the "First Tasks" list in CLAUDE.md 
 - Reading view (branch `feature/ghost-reader`): Ghost/Casper-style `/read` with a post-card home feed, search, tag archives, serif post pages with reading time, older/newer links and related posts, in light and dark; linked from the user menu.
 - Reading view share key (branch `feature/reader-share-key`): `TECHLOG_READ_KEY` lets `/read?key=…` open the reading view without a login; changing the key revokes every old link.
 - Docker image (branch `feature/dockerfile`): multi-stage `Dockerfile` (Node build, `php:8.4-apache` runtime) with an entrypoint that prepares the storage volume, migrates and caches; plus `TRUSTED_PROXIES` support via `config/trustedproxy.php`.
+- Docker Compose (branch `feature/docker-compose`): `docker-compose.yml` with restart policy, `/up` health check and a `.env.docker.example`; not yet run with Compose.
 
 ## Known gaps
 

@@ -61,6 +61,7 @@ routes/ai.php               MCP server registration (local stdio handle "techlog
 tests/Feature/              Pest feature tests, one folder per surface
 Dockerfile                  Production image: Node stage builds assets, PHP 8.4 + Apache stage serves public/
 docker/                     The image's entrypoint (storage setup, migrate, optimize) and php.ini
+docker-compose.yml          Runs the image with its port, storage volume and .env.docker settings
 ```
 
 ## Setup
@@ -115,6 +116,18 @@ Uploaded images live in `storage/app/public/attachments` and are not in git; bac
 ## Running with Docker
 
 The `Dockerfile` builds a single production image: a Node 26 stage runs `npm ci && npm run build`, then a `php:8.4-apache` stage installs Composer dependencies without dev packages and serves `public/`. There is no scheduler and nothing is queued, so one container is the whole app. Everything that must survive a rebuild (the SQLite database at `storage/database.sqlite`, uploaded images, logs) lives in the `/var/www/html/storage` volume; back that up.
+
+With Compose, settings live in `.env.docker` (git-ignored; start from `.env.docker.example`) and the volume is named `storage`:
+
+```sh
+cp .env.docker.example .env.docker
+docker compose run --rm app php artisan key:generate --show   # paste into APP_KEY
+docker compose up -d --build                                  # also how you update after git pull
+docker compose exec -u www-data app php artisan user:create
+docker compose logs -f
+```
+
+The container restarts unless stopped and has a health check on `/up`. Set `TECHLOG_PORT` to publish on a port other than 8080. The plain `docker` equivalent:
 
 ```sh
 docker build -t tech-log .
